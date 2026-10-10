@@ -29,6 +29,22 @@
   #host { display:none; margin-top:28px; padding-top:20px; border-top:1px dashed var(--line); text-align:left; font-family:system-ui, sans-serif; }
   #host textarea { text-transform:none; letter-spacing:0; font-size:.85rem; text-align:left; height:120px; }
   #host pre { white-space:pre-wrap; word-break:break-all; font-size:.75rem; background:var(--bg); padding:10px; border-radius:8px; }
+
+  .ghost { background:transparent; color:var(--accent); border:2px solid var(--accent); margin-top:10px; }
+  #agenda { position:fixed; inset:0; z-index:10; display:none; place-items:center; padding:14px; background:rgba(10,16,48,.75); backdrop-filter:blur(4px); }
+  #agenda.open { display:grid; }
+  .sheet { background:#fff; color:#1d2340; width:100%; max-width:480px; max-height:92vh; overflow:auto; border-radius:16px; text-align:left; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .sheet header { position:sticky; top:0; background:#263b8f; padding:20px 56px 16px 20px; }
+  .sheet h2 { margin:0; font-size:1.5rem; color:#f5e61a; }
+  .sheet header p { margin:4px 0 0; font:.85rem system-ui, sans-serif; color:#dfe4ff; }
+  .sheet .x { position:absolute; top:14px; right:14px; width:34px; height:34px; margin:0; padding:0; border-radius:50%; background:rgba(255,255,255,.18); color:#fff; font-size:1.2rem; line-height:1; }
+  .tl { list-style:none; margin:0; padding:20px 20px 6px 26px; }
+  .tl li { position:relative; padding:0 0 20px 22px; border-left:2px solid #d5d9ec; }
+  .tl li:last-child { border-left-color:transparent; }
+  .tl li::before { content:''; position:absolute; left:-8px; top:2px; width:14px; height:14px; border-radius:50%; background:#263b8f; border:3px solid #fff; box-shadow:0 0 0 2px #263b8f; }
+  .tl .t { font:700 .78rem system-ui, sans-serif; color:#c0282d; letter-spacing:.04em; }
+  .tl .i { font-weight:700; font-size:1.08rem; margin:2px 0; }
+  .tl .d { font:.88rem/1.4 system-ui, sans-serif; color:#5b6285; }
 </style>
 </head>
 <body>
@@ -42,6 +58,7 @@
     <button id="btn" type="submit">Check me in</button>
   </form>
   <div id="result" aria-live="polite"></div>
+  <button id="viewAgenda" class="ghost" type="button">View agenda</button>
 
   <!-- Host tools: open this page with #host at the end of the URL -->
   <section id="host">
@@ -52,6 +69,17 @@
     <pre id="hostOut"></pre>
   </section>
 </main>
+
+<div id="agenda" role="dialog" aria-modal="true" aria-labelledby="agTitle">
+  <div class="sheet">
+    <header>
+      <h2 id="agTitle">Programme</h2>
+      <p>Comfort Hotel, Entebbe &middot; 5:00 PM &ndash; 11:00 PM</p>
+      <button class="x" id="agClose" type="button" aria-label="Close agenda">&times;</button>
+    </header>
+    <ol class="tl" id="tl"></ol>
+  </div>
+</div>
 
 <script>
 /* ============ EDIT THIS SECTION ============ */
@@ -196,6 +224,28 @@ $("form").addEventListener("submit", async e => {
     <span class="small">${already ? "Already checked in" : "Checked in"} · ${when}</span></div>`;
   $("code").value = "";
 });
+
+/* Agenda */
+const AGENDA = [
+  ["5:00 – 5:45 PM", "Arrival and Check-in", "Guests check in with their invitation code, photos, seating"],
+  ["5:45 – 6:00 PM", "Welcome and Opening", "MC opens the evening, opening prayer, introduction of the theme"],
+  ["6:00 – 6:20 PM", "Remarks", "Head of School / Dean"],
+  ["6:20 – 7:30 PM", "Dinner", "Served with background music and a light icebreaker or table game"],
+  ["7:30 – 8:15 PM", "Speeches", "Guest of honour, student representatives and staff representative"],
+  ["8:15 – 8:50 PM", "Recognition and Awards", "Outstanding students, staff and class representatives"],
+  ["8:50 – 9:10 PM", "Toast and Cake", "A toast to “Building Togetherness”"],
+  ["9:10 – 10:30 PM", "Entertainment", "Live music, DJ, performances and games"],
+  ["10:30 – 10:50 PM", "Vote of Thanks and Closing", "Closing remarks and group photo"],
+  ["10:50 – 11:00 PM", "Farewell", "Guests depart"]
+];
+$("tl").innerHTML = AGENDA.map(([t, i, d]) =>
+  `<li><div class="t">${t}</div><div class="i">${i}</div><div class="d">${d}</div></li>`).join("");
+const openAg = () => { $("agenda").classList.add("open"); $("agenda").querySelector(".sheet").scrollTop = 0; };
+const closeAg = () => $("agenda").classList.remove("open");
+$("viewAgenda").addEventListener("click", openAg);
+$("agClose").addEventListener("click", closeAg);
+$("agenda").addEventListener("click", e => { if (e.target.id === "agenda") closeAg(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeAg(); });
 
 /* Host tool */
 if (location.hash === "#host") $("host").style.display = "block";
